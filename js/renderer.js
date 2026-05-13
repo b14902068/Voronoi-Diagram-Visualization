@@ -290,6 +290,23 @@ const Renderer = (() => {
     ctx.shadowBlur  = 0;
   }
 
+  // ── 動畫專用：繪製切割中的多邊形 ──────────────────────────────────
+  function drawAnimPoly(poly, color) {
+    if (!poly || poly.length < 3) return;
+    const ctx = _ctx;
+    ctx.beginPath();
+    ctx.moveTo(poly[0][0], poly[0][1]);
+    for (let i = 1; i < poly.length; i++) {
+      ctx.lineTo(poly[i][0], poly[i][1]);
+    }
+    ctx.closePath();
+    ctx.fillStyle = _rgba(color, 0.45);
+    ctx.fill();
+    ctx.strokeStyle = _rgba(color, 0.9);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
   // ── Quadtree 最近點（O(log n)）───────────────────────────────
   function findNearest(data, mx, my) {
     if (!data) return -1;
@@ -311,7 +328,7 @@ const Renderer = (() => {
 
   return {
     init, resize, getSize,
-    draw, drawBisector, drawCellFill, drawSiteLink,
+    draw, drawBisector, drawCellFill, drawSiteLink, drawAnimPoly,
     flashCell,
     findNearest, setHovered, setDragged, setShowLabels,
   };

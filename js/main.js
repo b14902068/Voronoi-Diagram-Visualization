@@ -200,8 +200,12 @@ function _drawBuildFrame(step, bisectors, latestBisector) {
   Renderer.draw(State.data, {
     showVertices:    State.showVertices,
     completedIndices: State.anim.completed,
-    highlightIndices: new Set([step.siteIndex]),
   });
+
+  // 畫出正在被中垂線切割的當前大範圍多邊形
+  if (latestBisector && latestBisector.currPoly) {
+    Renderer.drawAnimPoly(latestBisector.currPoly, step.site.color);
+  }
 
   // 畫已累積的中垂線（暗色）
   bisectors.forEach((b, i) => {

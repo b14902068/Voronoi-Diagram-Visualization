@@ -122,27 +122,82 @@ const VoronoiCalculator = (() => {
       if (e.cellB >= 0) siteEdges[e.cellB].push(e);
     });
 
-    // ── 動畫序列：每個 site 的建構步驟 ──
-    // 每個 AnimStep 包含：
-    //   siteIndex, site, bisectors (各中垂線段), cell (最終 cell polygon)
-    const animSteps = cells.map(cell => ({
-      siteIndex: cell.index,
-      site:      cell.site,
-      // 只取「與 index 較小的鄰居」的邊，避免重複畫同一條中垂線
-      bisectors: siteEdges[cell.index]
-        .filter(e => e.bisector !== null && e.cellB >= 0)
-        .map(e => ({
-          from:          e.from,
-          to:            e.to,
-          bisector:      e.bisector,
-          neighborIndex: e.cellA === cell.index ? e.cellB : e.cellA,
-        })),
-      cell: {
-        polygon: cell.polygon,
-        color:   cell.site.color,
-        area:    cell.area,
-      },
-    }));
+    // ── 輔助函式：用中垂線切割多邊形（Sutherland-Hodgman 概念）──
+    function clipPolygonByBisector(poly, siteA, siteB) {
+      if (!poly || poly.length < 3) return poly;
+      const result = [];
+      const distSq = (p, s) => (p[0] - s.x) ** 2 + (p[1] - s.y) ** 2;
+      const isInside = (p) => distSq(p, siteA) <= distSq(p, siteB) + 1e-9;
+
+      const M = { x: (siteA.x + siteB.x) / 2, y: (siteA.y + siteB.y) / 2 };
+      const V = { x: siteB.x - siteA.x, y: siteB.y - siteA.y };
+
+      for (let i = 0; i < poly.length; i++) {
+        const p1 = poly[i];
+        const p2 = poly[(i + 1) % poly.length];
+        const in1 = isInside(p1);
+        const in2 = isInside(p2);
+
+        if (in1) result.push(p1);
+
+        if (in1 !== in2) {
+          const d1 = (p1[0] - M.x) * V.x + (p1[1] - M.y) * V.y;
+          const d2 = (p2[0] - M.x) * V.x + (p2[1] - M.y) * V.y;
+          const t = d1 / (d1 - d2);
+          result.push([
+            p1[0] + t * (p2[0] - p1[0]),
+            p1[1] + t * (p2[1] - p1[1])
+          ]);
+        }
+      }
+      return result;
+    }
+
+    // ── 動畫序列：大範圍被中垂線慢慢切割 ──
+    const animSteps = cells.map(cell => {
+      const site = cell.site;
+      let currentPoly = [[0, 0], [width, 0], [width, height], [0, height]];
+      const bisectSteps = [];
+      const ext = Math.max(width, height) * 2;
+
+      cell.neighborIndices.forEach(nIdx => {
+        const neighbor = points[nIdx];
+        const M = { x: (site.x + neighbor.x) / 2, y: (site.y + neighbor.y) / 2 };
+        const V = { x: neighbor.x - site.x, y: neighbor.y - site.y };
+        const len = Math.hypot(V.x, V.y) || 1;
+        const ndx = V.x / len, ndy = V.y / len;
+        
+        // 貫穿整個畫面的中垂線
+        const lineStart = { x: M.x - ndy * ext, y: M.y + ndx * ext };
+        const lineEnd   = { x: M.x + ndy * ext, y: M.y - ndx * ext };
+
+        currentPoly = clipPolygonByBisector(currentPoly, site, neighbor);
+
+        bisectSteps.push({
+          neighborIndex: nIdx,
+          neighborSite:  neighbor,
+          bisector: {
+            siteA: site, siteB: neighbor, midpoint: M,
+            direction: { dx: -ndy, dy: ndx },
+            normal: { dx: ndx, dy: ndy }
+          },
+          from: lineStart,
+          to:   lineEnd,
+          currPoly: [...currentPoly]
+        });
+      });
+
+      return {
+        siteIndex: cell.index,
+        site:      cell.site,
+        bisectors: bisectSteps,
+        cell: {
+          polygon: cell.polygon,
+          color:   cell.site.color,
+          area:    cell.area,
+        },
+      };
+    });
 
     return { points, width, height, delaunay, voronoi, vertices, cells, edges, siteEdges, animSteps };
   }
