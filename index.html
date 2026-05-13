@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voronoi Diagram — 互動視覺化</title>
+  <meta name="description" content="互動式 Voronoi 圖：動畫建構、拖曳點、中垂線視覺化" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header>
+  <div class="logo-dot"></div>
+  <h1>Voronoi Diagram</h1>
+  <div class="header-pills">
+    <span class="pill" id="stat-mode">閒置</span>
+    <span class="pill mono"><span id="stat-points">0</span> 點</span>
+  </div>
+</header>
+
+<!-- ── Layout ─────────────────────────────────────────────── -->
+<main>
+
+  <!-- Canvas 區域 -->
+  <div id="canvas-wrap">
+    <canvas id="voronoi-canvas"></canvas>
+
+    <!-- 動畫進度條 -->
+    <div id="anim-progress">
+      <span id="anim-label">建構中…</span>
+      <div id="anim-track"><div id="anim-bar"></div></div>
+      <button id="btn-pause" class="btn-inline">⏸ 暫停</button>
+    </div>
+
+    <!-- Tooltip（DOM overlay，相對 canvas-wrap 定位）-->
+    <div id="tooltip" role="tooltip" aria-hidden="true">
+      <div class="tip-name" id="tip-name"></div>
+      <div class="tip-row"><span>Cell 面積</span><span id="tip-area">—</span></div>
+      <div class="tip-row"><span>鄰居數</span><span id="tip-neighbors">—</span></div>
+      <div class="tip-hint">滑鼠靠近點可拖曳</div>
+    </div>
+  </div>
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <!-- 生成控制 -->
+    <section>
+      <h2 class="section-title">生成點</h2>
+      <div class="gen-row">
+        <input type="number" id="input-count" value="12" min="2" max="200"
+               placeholder="點數" aria-label="生成點數量" />
+        <button class="btn btn-accent" id="btn-generate">▶ 生成 &amp; 動畫</button>
+      </div>
+      <p class="hint-text">輸入 2–200，每次重新動畫演示建構流程</p>
+    </section>
+
+    <!-- 圖例 -->
+    <section>
+      <h2 class="section-title">圖例（點擊高亮）</h2>
+      <div id="legend"></div>
+    </section>
+
+    <!-- 操作 -->
+    <section>
+      <h2 class="section-title">操作</h2>
+
+      <!-- 動畫速度 -->
+      <div class="speed-row">
+        <label for="slider-speed">
+          動畫速度
+          <span class="speed-val" id="lbl-speed">5</span>
+          <span class="speed-hint" id="lbl-speed-text">正常</span>
+        </label>
+        <div class="speed-track">
+          <span class="speed-end">慢</span>
+          <input type="range" id="slider-speed" min="1" max="10" value="5" step="1" aria-label="動畫速度" />
+          <span class="speed-end">快</span>
+        </div>
+      </div>
+
+      <button class="btn" id="btn-relax">Lloyd Relaxation</button>
+      <div class="toggle-row">
+        <button class="btn" id="btn-labels">標籤</button>
+        <span class="badge" id="lbl-label-badge">ON</span>
+      </div>
+      <div class="toggle-row">
+        <button class="btn" id="btn-vertices">Voronoi 頂點</button>
+        <span class="badge" id="lbl-vert-badge">OFF</span>
+      </div>
+    </section>
+
+    <!-- 說明 -->
+    <section>
+      <h2 class="section-title">功能說明</h2>
+      <ul class="feature-list">
+        <li><span class="feat-icon">①</span>輸入數量，後端生成隨機點</li>
+        <li><span class="feat-icon">②</span>動畫：逐步畫中垂線 → 閃爍 → 填色</li>
+        <li><span class="feat-icon">③</span>拖曳點（限速 18px/frame）即時重算</li>
+        <li><span class="feat-icon">📐</span>voronoi.js 回傳完整資料結構</li>
+      </ul>
+      <div class="data-legend">
+        <div class="dl-row"><span class="dl-dot" style="background:#fff;opacity:.5"></span>Voronoi 頂點（交點）</div>
+        <div class="dl-row"><span class="dl-dot" style="background:#ffff64"></span>中垂線 Midpoint</div>
+        <div class="dl-row"><span class="dl-dot" style="background:#fff;opacity:.2;border:1px dashed #ffff64"></span>虛線：兩 site 連線</div>
+      </div>
+    </section>
+
+  </aside>
+</main>
+
+<footer>
+  Voronoi Diagram · Canvas 2D + D3 Delaunay · voronoi.js / renderer.js / main.js
+</footer>
+
+<!-- D3 v7（Delaunay + Quadtree） -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<!-- 載入順序：計算層 → 渲染層 → 協調層 -->
+<script src="js/voronoi.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
