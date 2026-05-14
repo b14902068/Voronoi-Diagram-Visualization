@@ -71,6 +71,7 @@ const DOM = {
   animProgress:  $('anim-progress'),
   animBar:       $('anim-bar'),
   btnPause:      $('btn-pause'),
+  btnSkip:       $('btn-skip'),
   sliderSpeed:   $('slider-speed'),
   lblSpeed:      $('lbl-speed'),
   lblSpeedText:  $('lbl-speed-text'),
@@ -412,8 +413,13 @@ DOM.btnVertices.addEventListener('click', () => {
   scheduleDraw();
 });
 
-// ── 暫停/繼續 ────────────────────────────────────────────────
+// ── 暫停/繼續/立刻完成 ────────────────────────────────────────────────
 DOM.btnPause.addEventListener('click', togglePause);
+DOM.btnSkip.addEventListener('click', () => {
+  if (State.mode !== 'BUILDING') return;
+  _stopAnim();
+  _finishAnim();
+});
 
 // 空白鍵快捷鍵
 document.addEventListener('keydown', e => {
