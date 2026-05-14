@@ -96,6 +96,9 @@ const Renderer = (() => {
 
     // ② Cell 邊界線（hover/drag 加 shadow glow）
     cells.forEach((cell, i) => {
+      const isComplete = !completedSet || completedSet.has(i);
+      if (!isComplete) return; // 處理過後（或非動畫狀態）才畫最終邊界
+
       const isActive = i === _hoveredIdx || i === _draggedIdx;
       ctx.beginPath();
       voronoi.renderCell(i, ctx);
