@@ -199,6 +199,15 @@ const VoronoiCalculator = (() => {
       };
     });
 
+    // 將動畫序列依照距離畫布中心的遠近重新排序 (由近到遠)
+    const centerX = width / 2;
+    const centerY = height / 2;
+    animSteps.sort((a, b) => {
+      const distA = (a.site.x - centerX) ** 2 + (a.site.y - centerY) ** 2;
+      const distB = (b.site.x - centerX) ** 2 + (b.site.y - centerY) ** 2;
+      return distA - distB;
+    });
+
     return { points, width, height, delaunay, voronoi, vertices, cells, edges, siteEdges, animSteps };
   }
 
