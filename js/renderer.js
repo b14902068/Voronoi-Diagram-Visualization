@@ -120,6 +120,23 @@ const Renderer = (() => {
     // ③ Voronoi 頂點（交點）：帶光暈
     if (opts.showVertices) {
       data.vertices.forEach(v => {
+        // 動畫中：如果這個頂點不屬於任何「已完成區塊」的邊界，就先隱藏
+        if (completedSet) {
+          let isCompleted = false;
+          for (let i = 0; i < cells.length; i++) {
+            if (completedSet.has(i) && cells[i].polygon) {
+              for (let p of cells[i].polygon) {
+                if (Math.abs(p[0] - v.x) < 1 && Math.abs(p[1] - v.y) < 1) {
+                  isCompleted = true;
+                  break;
+                }
+              }
+            }
+            if (isCompleted) break;
+          }
+          if (!isCompleted) return;
+        }
+
         // 外圈光暈
         const g = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, 8);
         g.addColorStop(0, 'rgba(255,255,255,0.6)');
